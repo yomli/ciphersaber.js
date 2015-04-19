@@ -1,0 +1,274 @@
+<html>
+<head>
+	<title>CipherSaber.js</title>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+
+	<style>
+		input[type="button"] {
+			-webkit-appearance: none;
+			-o-appearance: none;
+			-ms-appearance: none;
+			appearance: none;
+			-moz-transition: background-color .2s ease-in-out, color .2s ease-in-out;
+			-webkit-transition: background-color .2s ease-in-out, color .2s ease-in-out;
+			-o-transition: background-color .2s ease-in-out, color .2s ease-in-out;
+			-ms-transition: background-color .2s ease-in-out, color .2s ease-in-out;
+			transition: background-color .2s ease-in-out, color .2s ease-in-out;
+			display: inline-block;
+			position: relative;
+			text-decoration: none;
+			text-align: center;
+			padding: 8px 12px;
+			font-size: 12px;
+			font-weight: 700;
+			font-family: Helvetica, Arial, sans-serif;
+			border-radius: 4px;
+			border: 1px solid rgba(0, 0, 0, .3);
+			cursor: pointer;
+			background-image: linear-gradient(rgba(0, 0, 0, .1), transparent), linear-gradient(180deg, #3d98f4 100%, transparent 50%);
+			box-shadow: 0 .1em .1em .1em hsla(210, 90%, 80%, .8) inset, 0 0 .5em rgba(0, 0, 0, .3);
+			color: #fff;
+			text-shadow: 0 -1px 1px rgba(0, 0, 0, .3);
+		}
+		input[type="button"]:active, input[type="button"]:hover {
+			box-shadow: 0 .1em .1em .1em hsla(210, 90%, 80%, .8) inset, 0 0 .5em rgba(58, 145, 233, .9), 0 .1em .1em rgba(0, 0, 0, .2) inset, 0 .45em 0 .1em rgba(0, 0, 0, .05) inset, 0 0 .4em 1px rgba(58, 145, 233, .9);
+			text-shadow: 0 1px 0 rgba(0, 0, 0, .3);
+		}
+		input[type="number"], textarea, input[type="password"] {
+			-moz-appearance: none;
+			-webkit-appearance: none;
+			-o-appearance: none;
+			-ms-appearance: none;
+			appearance: none;
+			color: #555!important;
+			display: block;
+			outline: 0;
+			padding: 0 1em;
+			text-decoration: none;
+			width: 75%;
+			margin-bottom: .8em;
+			height: 2.75em;
+			background: linear-gradient(to bottom, #e0e0e0 0, #fff 100%);
+			border-radius: 4px;
+			border: 1px solid #717171;
+			box-shadow: 1px 1px 0 #efefef;
+			text-shadow: 0 1px 0 #fff;
+		}
+		input[type="number"]:focus, textarea:focus, input[type="password"]:focus {
+			box-shadow: 0 0 .4em 1px rgba(58, 145, 233, .9);
+		}
+		div#main {
+			background-color: silver;
+			padding: 20px;
+			border-radius: 20px;
+			border-right: 1px solid #333;
+			border-left: 1px solid #333;
+			border-top: 1px solid rgba(255, 255, 255, .8);
+			border-bottom: 1px solid #777;
+			width:80%;
+			min-width:200px;
+			margin:0 auto;
+		}
+		h1 {
+			color: #555;
+			text-align:center;
+			text-shadow: 0 1px 0 rgba(255, 255, 255, .8);
+			font-family: Arial, Helvetica, sans-serif;
+		}
+		textarea {
+			height:8em
+		}
+		body {
+			background-color:#000;
+		}
+	</style>
+</head>
+<body>
+	<div id="main">
+		<h1>CipherSaber.js</h1>
+
+		<form action="">
+			<textarea id="text" rows="15"></textarea>
+			<br>
+			<input type="password" id="password" name="key" placeholder="Clé">
+			<br>
+			<input type="number" name="iv" id="cycle" value="20" min="1" max="100" placeholder="Cycles">
+			<br>
+			<input type="button" value="Encrypt" id="encrypt">
+			<input type="button" value="Decrypt" id="decrypt">
+		</form>
+	</div>
+
+	<script type="text/javascript">
+/*
+ * ----------------------------------------------------------------------------
+ * "THE BEER-WARE LICENSE" (Revision 42):
+ * <guillaume.litaudon@gmail.com> wrote this file. As long as you retain this 
+ * notice you can do whatever you want with this stuff. If we meet some day, 
+ * and you think this stuff is worth it, you can buy me a beer in return.
+ * Guillaume Litaudon
+ * ----------------------------------------------------------------------------
+ *
+ * Simple implementation of the CipherSaber-2 algorithm by Arnold Reinhold
+ * <arnold@iecc.com>.
+ * More info: http://ciphersaber.gurus.org/
+ *
+ * Usage:
+ * var encryptedText = CipherSaber.encrypt(someText, aPassword, aNumber);
+ * var decryptedText = CipherSaber.decrypt(someText, aPassword, aNumber);
+ *
+ * @author		Guillaume Litaudon
+ * @version		1.10, 19/04/2015  
+ */
+ var CipherSaber = new function() {
+
+ 	this.message = "Hello World!";
+ 	this.password = "password";
+ 	this.cycles = 20;
+ 	this.seed = [];
+ 	this.ruby = [];
+ 	this.light = [];
+ 	this.output = [];
+ 	this.button = [];
+
+
+ 	this.refractor = function() {
+ 		var i = 0;
+ 		var j = 0;
+
+ 		for (n = 0; n < this.message.length; n++) {
+
+ 			i = parseInt(i + 1) % 256;
+ 			j = parseInt(j + this.light[i]) % 256;
+
+ 			var tmp = this.light[i];
+ 			this.light[i] = this.light[j];
+ 			this.light[j] = tmp;
+
+ 			var k = parseInt(this.light[i] + this.light[j]) % 256;
+
+ 			this.output[n] = (this.light[k] ^ this.message[n]);
+ 		}
+ 	};
+
+ 	this.emission = function() {
+ 		var j = 0;
+
+ 		for (i = 0; i < 256; i++)
+ 			this.light[i] = i;
+
+ 		for (n = 1; n <= this.cycles; n++) {
+ 			for (i = 0; i < 256; i++) {
+ 				j = parseInt(j + this.light[i] + this.ruby[i]) % 256;
+ 				var tmp = this.light[i];
+ 				this.light[i] = this.light[j];
+ 				this.light[j] = tmp;
+ 			}
+ 		}
+
+ 	};
+
+ 	this.pushButton = function() {
+ 		var shape = this.password.concat(this.seed);
+ 		for (i = 0; i < 256; i++) {
+ 			var tmp = shape.shift();
+ 			this.ruby[i] = tmp;
+ 			shape.push(tmp);
+ 		}
+ 	};
+
+ 	this.encrypt = function(text, key, iv) {
+ 		this.message = this.toByte(text);
+ 		this.password = this.toByte(key);
+ 		this.cycles = iv; 
+
+ 		for (i = 0; i < 10; i++) {
+ 			this.seed[i] = Math.round(Math.random() * 256);
+ 		}
+
+ 		this.pushButton();
+ 		this.emission();
+ 		this.refractor();
+
+ 		var crypted = "";
+ 		for (i = 0; i < this.seed.length; i++) {
+ 			crypted += this.toHex(this.seed[i]) + " ";
+ 		}
+ 		for (i = 0; i < this.output.length; i++) {
+ 			crypted += this.toHex(this.output[i]) + " ";
+ 		}
+
+ 		return crypted;
+
+ 	};
+
+ 	this.decrypt = function(text, key, iv) {
+ 		this.password = this.toByte(key);
+ 		this.message = text.split(" ");
+
+ 		for (i = 0; i < this.message.length; i++) {
+ 			this.message[i] = parseInt(this.message[i], 16);
+ 			if (isNaN(this.message[i])) this.message.splice(i, 1);
+
+ 		}
+
+ 		this.seed = this.message.splice(0, 10);
+
+ 		this.pushButton();
+ 		this.emission();
+ 		this.refractor();
+
+ 		var decrypted = "";
+ 		for (i = 0; i < this.output.length; i++) {
+ 			decrypted += String.fromCharCode(this.output[i]);
+ 		}
+ 		return decrypted;
+
+ 	};
+
+ 	this.toByte = function(str) {
+ 		var byt = [];
+ 		for (i = 0; i < str.length; i++)
+ 			byt[i] = str.charCodeAt(i);
+ 		return byt;
+ 	};
+
+ 	this.toHex = function(num) {
+ 		var hex = Number(num).toString(16);
+ 		while (hex.length < 2)
+ 			hex = "0" + hex;
+ 		return hex;
+ 	};
+ }
+
+		var encrypt = document.getElementById("encrypt");
+		encrypt.addEventListener("click", function (e) {
+			e.preventDefault();
+
+			var textarea = document.getElementById("text");
+
+			var text = textarea.value;
+			var password = document.getElementById("password").value;
+			var cycle = document.getElementById("cycle").value;
+			textarea.value = CipherSaber.encrypt(text, password, cycle);
+			//textarea.value = cipherSaberOn(text, password, cycle);
+		}, !1);
+
+		var decrypt = document.getElementById("decrypt");
+		decrypt.addEventListener("click", function (e) {
+			e.preventDefault();
+
+			var textarea = document.getElementById("text");
+
+			var text = textarea.value;
+			var password = document.getElementById("password").value;
+			var cycle = document.getElementById("cycle").value;
+			textarea.value = CipherSaber.decrypt(text, password, cycle);
+			//textarea.value = cipherSaberOff(text, password, cycle);
+		}, !1);
+
+	</script>
+</body>
+</html>
+
+
