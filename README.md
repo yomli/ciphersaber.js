@@ -35,4 +35,5 @@ Returns a decrypted text.
 Please do not use this for anything important. In fact, don't use this at all. [Go write your own](http://ciphersaber.gurus.org/).
 
 ## License
-Licensed under the Beer-ware license, revision 42.
+Licensed under the terms of the MIT-Beerware license.
+See the [LICENSE](LICENSE) file for license rights and limitations.
