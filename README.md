@@ -16,6 +16,7 @@ Output
 
 Hello
 ```
+See [example.html](example.html) for more informations.
 
 ### CipherSaber.encrypt(someText, aPassword, aNumber)
 Returns an encrypted text.
