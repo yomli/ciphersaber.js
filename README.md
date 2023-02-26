@@ -1,3 +1,5 @@
+Project transfered to https://codeberg.org/yomli/ciphersaber.js
+
 # CipherSaber.js
 
 This is a very simple implementation of the CipherSaber-2 algorithm by Arnold Reinhold (arnold@iecc.com).
